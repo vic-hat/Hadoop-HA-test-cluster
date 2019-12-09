@@ -1,7 +1,7 @@
 zookeeper_version: zookeeper-3.5.6
 zookeeper_data_dir: /home/zookeeper/ha-cluster/data
 zookeeper_client_port: 2181
-zookeeper_id: 1
 zookeeper_leader_port: 2888
 zookeeper_election_port: 3888
-zookeeper_servers: "{{groups['hadoop']}}"
+zookeeper_servers: "{{groups['zookeeper']}}"
+zookeeper_id: 1

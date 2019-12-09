@@ -5,7 +5,7 @@
   hosts: [hadoop]
   
   roles:
-    - java
-    - maven
-    - hadoop
+          #    - java
+          #    - maven
+          #    - hadoop
     - zookeeper 

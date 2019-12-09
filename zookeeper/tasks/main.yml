@@ -1,3 +1,5 @@
+- debug: "{{groups['zookeeper']}}"
+
 - name: create zookeeper user
   user:
    name: zookeeper
@@ -20,7 +22,7 @@
 
 - name: download zookeeper
   get_url:
-   url: https://archive.apache.org/dist/zookeeper/{{zookeeper_version}}/apache-{{zookeeper_version}}.tar.gz
+   url: https://archive.apache.org/dist/zookeeper/{{zookeeper_version}}/apache-{{zookeeper_version}}-bin.tar.gz
    dest: /home/zookeeper/ha-cluster/
    owner: zookeeper
    group: zookeeper
@@ -33,10 +35,10 @@
    owner: zookeeper
    group: zookeeper
 
-- name: build zookeeper
-  shell:
-   cmd: mvn clean install
-   chdir: /home/zookeeper/ha-cluster/apache-{{zookeeper_version}}
+   #- name: build zookeeper
+   #  shell:
+   #cmd: mvn clean install
+   #chdir: /home/zookeeper/ha-cluster/apache-{{zookeeper_version}}
 
 - name: make dir for zookeeper conf
   file:
@@ -53,18 +55,18 @@
 - name: generate zoo.cfg
   template:
    src: zoo.cfg.j2
-   dest: /home/zookeeper/ha-cluster/apache-{{zookeeper_version}}-bin/conf
+   dest: /home/zookeeper/ha-cluster/apache-{{zookeeper_version}}-bin/conf/zoo.cfg
 
 - name: generate myid
   template:
    src: myid.j2
-   dest: /home/zookeeper/ha-cluster/data
+   dest: /home/zookeeper/ha-cluster/data/myid
 
 - name: start zk-server
   shell: /home/zookeeper/ha-cluster/apache-{{zookeeper_version}}-bin/bin/zkServer.sh start
 
 - name: start zkfc format on NN1
-  when: namenode1
+  when: "'namenode1' in inventory_hostname"
   shell: hdfs zkfc -formatZK
 
 - name: start zkfc on all nodes
