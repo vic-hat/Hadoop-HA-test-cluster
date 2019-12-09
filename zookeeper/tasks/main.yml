@@ -27,7 +27,7 @@
 
 - name: unarhive zookeeper
   unarchive:
-   src: /home/zookeeper/ha-cluster/apache-{{zookeeper_version}}.tar.gz
+   src: /home/zookeeper/ha-cluster/apache-{{zookeeper_version}}-bin.tar.gz
    dest: /home/zookeeper/ha-cluster/
    remote_src: yes
    owner: zookeeper
@@ -40,7 +40,7 @@
 
 - name: make dir for zookeeper conf
   file:
-   path: /home/zookeeper/ha-cluster/apache-{{zookeeper_version}}/conf
+   path: /home/zookeeper/ha-cluster/apache-{{zookeeper_version}}-bin/conf
    state: directory
    owner: zookeeper
    group: zookeeper
@@ -48,12 +48,12 @@
 - name: add zookeeper env
   lineinfile:
    dest=/home/zookeeper/.bashrc
-   line='export ZOOKEEPER_HOME=/home/zookeeper/ha-cluster/apache-{{zookeeper_version}}'
+   line='export ZOOKEEPER_HOME=/home/zookeeper/ha-cluster/apache-{{zookeeper_version}}-bin'
 
 - name: generate zoo.cfg
   template:
    src: zoo.cfg.j2
-   dest: /home/zookeeper/ha-cluster/apache-{{zookeeper_version}}/conf
+   dest: /home/zookeeper/ha-cluster/apache-{{zookeeper_version}}-bin/conf
 
 - name: generate myid
   template:
@@ -61,7 +61,7 @@
    dest: /home/zookeeper/ha-cluster/data
 
 - name: start zk-server
-  shell: $ZOOKEEPER_HOME/bin/zkServer.sh start
+  shell: /home/zookeeper/ha-cluster/apache-{{zookeeper_version}}-bin/bin/zkServer.sh start
 
 - name: start zkfc format on NN1
   when: namenode1
