@@ -1,0 +1,11 @@
+- name: deploy hadoop HA cluster with zookeeper
+  become: yes
+  become_user: root
+  become_method: sudo
+  hosts: [hadoop]
+  
+  roles:
+    - java
+    - maven
+    - hadoop
+    - zookeeper 

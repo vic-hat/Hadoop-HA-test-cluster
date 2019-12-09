@@ -1,0 +1,6 @@
+primary_node: namenode1
+hadoop_version: hadoop-3.2.1
+zookeeper_hosts: "{{ groups.zookeeper_hosts }}"
+hdfs_replication: 3
+hadoop_namenodes: "{{groups.hadoop_namenodes}}"
+

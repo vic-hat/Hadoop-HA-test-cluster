@@ -1,0 +1,69 @@
+- name: create hadoop user
+  user:
+   name: hadoop
+   shell: /bin/bash
+   home: /home/hadoop
+
+- name: make dir for hadoop
+  file:
+   path: /home/hadoop/ha-cluster/
+   state: directory
+   owner: hadoop
+   group: hadoop
+
+- name: make dir for hadoop data
+  file:
+   path: /home/hadoop/ha-cluster/data
+   state: directory
+   owner: hadoop
+   group: hadoop
+
+- name: download hadoop
+  get_url:
+   url: https://archive.apache.org/dist/hadoop/common/{{hadoop_version}}/{{hadoop_version}}.tar.gz
+   dest: /home/hadoop/ha-cluster/
+   owner: hadoop
+   group: hadoop
+
+- name: unarhive hadoop
+  unarchive:
+   src: /home/hadoop/ha-cluster/{{hadoop_version}}.tar.gz
+   dest: /home/hadoop/ha-cluster/
+   remote_src: yes
+   owner: hadoop
+
+- name: generate hdfs-site.xml
+  template:
+   src: hdfs-site.xml.j2
+   dest: /home/hadoop/ha-cluster/{{hadoop_version}}/etc/hadoop/- name: generate hdfs-site.xml
+
+- name: generate core-site.xml
+  template:
+   src: core-site.xml.j2
+   dest: /home/hadoop/ha-cluster/{{hadoop_version}}/etc/hadoop/
+
+- name: start journalnode
+  when: inventory_hostname in [journalnodes]
+  shell: /home/hadoop/ha-cluster/{{hadoop_version}}/sbin/hadoop-daemon.sh start journalnode
+
+- name: format namenode
+  when: inventory_hostname == {{primary_namenode}}
+  shell: hdfs namenode format
+
+- name: start primary namenode
+  when: inventory_hostname == {{primary_namenode}}
+  shell: /home/hadoop/ha-cluster/{{hadoop_version}}/sbin/hadoop-daemon.sh start namnode
+
+- name: bootstrap secondary nodes
+  when: inventory_hostname in [secondary_namenodes]
+  shell: hdfs namenode -bootstrapstandby
+
+- name: start namenodes
+  when: inventory_hostname in [secondary_namenodes]
+  shell: /home/hadoop/ha-cluster/{{hadoop_version}}/sbin/hadoop-daemon.sh start namenode
+
+- name: start datanodes
+  shell: /home/hadoop/ha-cluster/{{hadoop_version}}/sbin/hadoop-daemon.sh start datanode
+
+
+

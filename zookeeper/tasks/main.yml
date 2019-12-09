@@ -1,0 +1,72 @@
+- name: create zookeeper user
+  user:
+   name: zookeeper
+   shell: /bin/bash
+   home: /home/zookeeper
+
+- name: make dir for zookeeper
+  file:
+   path: /home/zookeeper/ha-cluster/
+   state: directory
+   owner: zookeeper
+   group: zookeeper
+
+- name: make dir for zookeeper data
+  file:
+   path: /home/zookeeper/ha-cluster/data
+   state: directory
+   owner: zookeeper
+   group: zookeeper
+
+- name: download zookeeper
+  get_url:
+   url: https://archive.apache.org/dist/zookeeper/{{zookeeper_version}}/apache-{{zookeeper_version}}.tar.gz
+   dest: /home/zookeeper/ha-cluster/
+   owner: zookeeper
+   group: zookeeper
+
+- name: unarhive zookeeper
+  unarchive:
+   src: /home/zookeeper/ha-cluster/apache-{{zookeeper_version}}.tar.gz
+   dest: /home/zookeeper/ha-cluster/
+   remote_src: yes
+   owner: zookeeper
+   group: zookeeper
+
+- name: build zookeeper
+  shell:
+   cmd: mvn clean install
+   chdir: /home/zookeeper/ha-cluster/apache-{{zookeeper_version}}
+
+- name: make dir for zookeeper conf
+  file:
+   path: /home/zookeeper/ha-cluster/apache-{{zookeeper_version}}/conf
+   state: directory
+   owner: zookeeper
+   group: zookeeper
+
+- name: add zookeeper env
+  lineinfile:
+   dest=/home/zookeeper/.bashrc
+   line='export ZOOKEEPER_HOME=/home/zookeeper/ha-cluster/apache-{{zookeeper_version}}'
+
+- name: generate zoo.cfg
+  template:
+   src: zoo.cfg.j2
+   dest: /home/zookeeper/ha-cluster/apache-{{zookeeper_version}}/conf
+
+- name: generate myid
+  template:
+   src: myid.j2
+   dest: /home/zookeeper/ha-cluster/data
+
+- name: start zk-server
+  shell: $ZOOKEEPER_HOME/bin/zkServer.sh start
+
+- name: start zkfc format on NN1
+  when: namenode1
+  shell: hdfs zkfc -formatZK
+
+- name: start zkfc on all nodes
+  shell: $HADOOP_HOME/sbin/hadoop-daemon.sh start zkfc
+
