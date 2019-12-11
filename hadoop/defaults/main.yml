@@ -1,6 +1,6 @@
 primary_node: namenode1
 hadoop_version: hadoop-3.2.1
-zookeeper_hosts: "{{ groups.zookeeper_hosts }}"
+zookeeper_hosts: "{{ groups['zookeeper'] }}"
 hdfs_replication: 3
-hadoop_namenodes: "{{groups.hadoop_namenodes}}"
-
+hadoop_namenodes: "{{ groups['namenode'] }}"
+hadoop_journalnodes: "{{ groups['journalnode'] }}"

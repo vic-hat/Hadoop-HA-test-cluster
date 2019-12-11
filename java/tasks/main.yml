@@ -1,3 +1,9 @@
 - name: install java
   apt: pkg={{java_package}} state=present update_cache=true
 
+- name: register JAVA_HOME env variable
+  lineinfile: 
+   dest: /etc/profile 
+   regexp: "^" 
+   state: present 
+   line: "export JAVA_HOME={{java_home_path}}"

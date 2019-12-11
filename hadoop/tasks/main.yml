@@ -1,3 +1,19 @@
+- name: add env in profile
+  become: yes
+  blockinfile:
+   path: /etc/profile
+   block: |
+    export HADOOP_HOME=/home/hadoop/ha-cluster/hadoop-3.2.1
+    export HADOOP_MAPRED_HOME=$HADOOP_HOME
+    export HADOOP_COMMON_HOME=$HADOOP_HOME
+    export HADOOP_HDFS_HOME=$HADOOP_HOME
+    export YARN_HOME=$HADOOP_HOME
+    export HADOOP_CONF_DIR=$HADOOP_HOME/etc/hadoop
+    export YARN_CONF_DIR=$HADOOP_HOME/etc/hadoop
+    export JAVA_HOME=/usr/lib/jvm/java-8-openjdk-amd64
+    export ZOOKEEPER_HOME=/home/hadoop/ha-cluster/apache-zookeeper-3.5.6
+    export PATH=$PATH:$JAVA_HOME/bin:$HADOOP_HOME/bin:$HADOOP_HOME/sbin:$ZOOKEEPER_HOME/bin
+
 - name: create hadoop user
   user:
    name: hadoop
@@ -18,52 +34,119 @@
    owner: hadoop
    group: hadoop
 
-- name: download hadoop
-  get_url:
-   url: https://archive.apache.org/dist/hadoop/common/{{hadoop_version}}/{{hadoop_version}}.tar.gz
-   dest: /home/hadoop/ha-cluster/
+- name: make dir for hadoop data namenode
+  file:
+   path: /home/hadoop/ha-cluster/data/namenode
+   state: directory
    owner: hadoop
-   group: hadoop
+   group: hadoop   
 
-- name: unarhive hadoop
-  unarchive:
-   src: /home/hadoop/ha-cluster/{{hadoop_version}}.tar.gz
-   dest: /home/hadoop/ha-cluster/
-   remote_src: yes
-   owner: hadoop
+   #- name: download hadoop
+   #get_url:
+   #url: https://archive.apache.org/dist/hadoop/common/{{hadoop_version}}/{{hadoop_version}}.tar.gz
+   #dest: /home/hadoop/ha-cluster/
+   #owner: hadoop
+   #group: hadoop
+
+   #- name: unarhive hadoop
+   #unarchive:
+   #src: /home/hadoop/ha-cluster/{{hadoop_version}}.tar.gz
+   #dest: /home/hadoop/ha-cluster/
+   #remote_src: yes
+   #owner: hadoop
 
 - name: generate hdfs-site.xml
   template:
    src: hdfs-site.xml.j2
-   dest: /home/hadoop/ha-cluster/{{hadoop_version}}/etc/hadoop/- name: generate hdfs-site.xml
+   dest: /home/hadoop/ha-cluster/{{hadoop_version}}/etc/hadoop/hdfs-site.xml
 
 - name: generate core-site.xml
   template:
    src: core-site.xml.j2
-   dest: /home/hadoop/ha-cluster/{{hadoop_version}}/etc/hadoop/
+   dest: /home/hadoop/ha-cluster/{{hadoop_version}}/etc/hadoop/core-site.xml
+
+- name: check if journalnode is running
+  become: yes
+  shell: runuser -l hadoop -c 'jps | grep " JournalNode" | grep -v grep'
+  ignore_errors: yes
+  changed_when: false
+  register: service_journalnode_status
 
 - name: start journalnode
-  when: inventory_hostname in [journalnodes]
-  shell: /home/hadoop/ha-cluster/{{hadoop_version}}/sbin/hadoop-daemon.sh start journalnode
+  become: yes
+  when: (inventory_hostname in groups['journalnode']) and (service_journalnode_status.rc == 1)
+  shell: runuser -l hadoop -c 'hdfs --daemon start journalnode' 
+  #environment:
+  #     JAVA_HOME: /usr/lib/jvm/java-8-openjdk-amd64
+        # PATH: /home/hadoop/ha-cluster/hadoop-3.2.1/bin
+
+
+- name: check if namenode is running
+  become: yes
+  shell: runuser -l hadoop -c 'jps | grep "NameNode" | grep -v grep'
+  ignore_errors: yes
+  changed_when: false
+  register: service_namenode_status  
 
 - name: format namenode
-  when: inventory_hostname == {{primary_namenode}}
-  shell: hdfs namenode format
+  become: yes
+  when: (inventory_hostname in groups['master']) and (service_namenode_status.rc == 1)
+  shell: runuser -l hadoop -c 'hdfs namenode -format'
+
+- name: check if namenode is running
+  become: yes
+  shell: runuser -l hadoop -c 'jps | grep "NameNode" | grep -v grep'
+  ignore_errors: yes
+  changed_when: false
+  register: service_namenode_status
 
 - name: start primary namenode
-  when: inventory_hostname == {{primary_namenode}}
-  shell: /home/hadoop/ha-cluster/{{hadoop_version}}/sbin/hadoop-daemon.sh start namnode
+  when: (inventory_hostname in groups['master']) and (service_namenode_status.rc == 1)
+  shell: runuser -l  hadoop -c 'hdfs --daemon start namenode'
+  become: yes
+
+- name: check if namenode is running
+  become: yes
+  shell: runuser -l hadoop -c 'jps | grep "NameNode" | grep -v grep'
+  ignore_errors: yes
+  changed_when: false
+  register: service_namenode_status
 
 - name: bootstrap secondary nodes
-  when: inventory_hostname in [secondary_namenodes]
-  shell: hdfs namenode -bootstrapstandby
+  when: (inventory_hostname in groups['standby']) and (service_namenode_status.rc == 1)
+  shell: runuser -l hadoop -c 'hdfs namenode -bootstrapstandby'
+  become: yes
+
+- name: check if namenode is running
+  become: yes
+  shell: runuser -l hadoop -c 'jps | grep " NameNode" | grep -v grep'
+  ignore_errors: yes
+  changed_when: false
+  register: service_namenode_status  
 
 - name: start namenodes
-  when: inventory_hostname in [secondary_namenodes]
-  shell: /home/hadoop/ha-cluster/{{hadoop_version}}/sbin/hadoop-daemon.sh start namenode
+  when: (inventory_hostname in groups['namenode']) and (service_namenode_status.rc == 1)
+  shell: runuser -l  hadoiop -c 'hdfs --daemon start namenode'
+  become: yes
+  
+- name: check if datanode is running
+  become: yes
+  shell: runuser -l hadoop -c 'jps | grep " DataNode" | grep -v grep'
+  ignore_errors: yes
+  changed_when: false
+  register: service_datanode_status
 
 - name: start datanodes
-  shell: /home/hadoop/ha-cluster/{{hadoop_version}}/sbin/hadoop-daemon.sh start datanode
+  when:  (inventory_hostname in groups['datanode']) and (service_namenode_status.rc == 1)
+  shell: runuser -l  hadoop -c 'hdfs --daemon start namnode'
+  become: yes
 
+- name: start zkfc format on NN1
+  when: "'namenode1' in inventory_hostname"
+  shell: runuser -l  hadoop -c ' hdfs zkfc -formatZK'
+  become: yes
 
+- name: start zkfc on all nodes
+  shell: runuser -l  hadoop -c '$HADOOP_HOME/sbin/hadoop-daemon.sh start zkfc'
+  become: yes
 
