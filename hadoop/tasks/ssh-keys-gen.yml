@@ -1,0 +1,66 @@
+- hosts: hadoop 
+  become: yes
+  become_user: root
+  become_method: sudo
+  tasks:
+    - name: generate ssh key
+      local_action: command ssh-keygen -f /etc/ansible/roles/hadoop/files -q -P ""
+      ignore_errors: yes
+
+    - name: Set authorized key taken from file
+      authorized_key:
+       user: hadoop
+       state: present
+       key: "{{ lookup('file', '/etc/ansible/roles/hadoop/files/id_rsa.pub') }}"
+
+    - name: Change file ownership, group and permissions
+      file:
+       path: /etc/ansible/roles/hadoop/files/id_rsa
+       mode: '0777'
+      delegate_to: localhost
+
+    - name: Change file ownership, group and permissions
+      file:
+       path: /etc/ansible/roles/hadoop/files/id_rsa.pub
+       mode: '0777'
+      delegate_to: localhost
+
+    - name: copy_keys
+      copy:
+       src: /etc/ansible/roles/hadoop/files/id_rsa
+       dest: /home/hadoop/.ssh/
+       owner: hadoop
+       group: hadoop 
+      become: yes
+
+    - name: copy_pub_keys
+      copy:
+       src: /etc/ansible/roles/hadoop/files/id_rsa.pub
+       dest: /home/hadoop/.ssh/
+       owner: hadoop
+       group: hadoop
+      become: yes
+
+    - name: Change key file ownership, group and permissions
+      file:
+        path: /home/hadoop/.ssh/id_rsa
+        mode: '0600'
+
+    - name: Change pub key file ownership, group and permissions
+      file:
+        path: /home/hadoop/.ssh/id_rsa.pub
+        mode: '0644'
+
+
+    - name: get port, default 22
+      delegate_to: localhost
+      set_fact:
+        ansible_ssh_port: "{{ hostvars[inventory_hostname]['ansible_ssh_port'] | default('22') }}"
+
+    - name: Ensure ssh host key known
+      delegate_to: localhost
+      lineinfile:
+        dest: ~/.ssh/known_hosts
+        create: yes
+        state: present
+        line: "{{ lookup('pipe', 'ssh-keyscan -trsa -p' + ansible_ssh_port + ' ' + inventory_hostname) }}"

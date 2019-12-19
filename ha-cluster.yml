@@ -3,7 +3,7 @@
   become_user: root
   become_method: sudo
   hosts: [hadoop]
-  
+
   roles:
        - java
        - zookeeper 
