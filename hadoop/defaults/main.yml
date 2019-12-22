@@ -1,6 +1,22 @@
 primary_node: namenode1
+
+hadoop_home: /home/{{ hadoop_user }}/{{ hadoop_defaultFS }}/ {{ hadoop_version }}
+
+hadoop_user: hadoop
+hadoop_group: hadoop
+zookeeper_user: zookeeper
+
+java_home: /usr/lib/jvm/java-8-openjdk-amd64
+
+hadoop_defaultFS: ha-cluster 
+
 hadoop_version: hadoop-3.2.1
+zookeeper_version: apache-zookeeper-3.5.6
+
 zookeeper_hosts: "{{ groups['zookeeper'] }}"
-hdfs_replication: 1
 hadoop_namenodes: "{{ groups['namenode'] }}"
 hadoop_journalnodes: "{{ groups['journalnode'] }}"
+
+hdfs_replication: 1
+
+

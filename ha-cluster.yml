@@ -4,7 +4,8 @@
   become_method: sudo
   hosts: [hadoop]
 
-  roles:
+  roles:          
        - java
        - zookeeper 
        - hadoop 
+         # - ha-runner

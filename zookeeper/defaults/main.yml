@@ -1,3 +1,9 @@
+zookeeper_user: zookeeper
+zookeeper_group: zookeeper
+
+zookeeper_home: /home/{{ zookeeper_user }}/{{ zookeeper_dir }}/{{ zookeeper_version }}
+
+zookeeper_dir: ha-cluster
 zookeeper_version: zookeeper-3.5.6
 zookeeper_data_dir: /home/zookeeper/ha-cluster/data
 zookeeper_log_dir: /home/zookeeper/ha-cluster/data/logs
