@@ -24,23 +24,24 @@
 
 - name: make dir for hadoop
   file:
-   path: /home/hadoop/ha-cluster/
+   path: /home/{{ hadoop_user }}/{{ hadoop_defaultFS }}/
    state: directory
    owner: "{{ hadoop_user }}"
    group: "{{ hadoop_group }}"
 
 - import_tasks: ssh-keys-gen.yml 
+- import_tasks: hosts-managment.yml
 
 - name: make dir for hadoop data
   file:
-   path: /home/hadoop/ha-cluster/data
+   path: /home/{{ hadoop_user }}/{{ hadoop_defaultFS }}/data
    state: directory
    owner: "{{ hadoop_user }}"
    group: "{{ hadoop_group }}"
 
 - name: make dir for hadoop data namenode
   file:
-   path: /home/hadoop/ha-cluster/data/namenode
+   path: /home/{{ hadoop_user }}/{{ hadoop_defaultFS }}/data/namenode
    state: directory
    owner: "{{ hadoop_user }}"
    group: "{{ hadoop_group }}"  
@@ -48,7 +49,7 @@
 
 - name: make dir for hadoop data datanode
   file:
-   path: /home/hadoop/ha-cluster/data/datanode
+   path: /home/{{ hadoop_user }}/{{ hadoop_defaultFS }}/data/datanode
    state: directory
    owner: "{{ hadoop_user }}"
    group: "{{ hadoop_group }}"
@@ -56,7 +57,7 @@
 
 - name: make dir for hadoop data journalnode
   file:
-   path: /home/hadoop/ha-cluster/data/jn
+   path: /home/{{ hadoop_user }}/{{ hadoop_defaultFS }}/data/jn
    state: directory
    owner: "{{ hadoop_user }}"
    group: "{{ hadoop_group }}"
@@ -64,27 +65,27 @@
 
 - name: download hadoop
   get_url:
-   url: https://archive.apache.org/dist/hadoop/common/{{hadoop_version}}/{{hadoop_version}}.tar.gz
-   dest: /home/hadoop/ha-cluster/
+   url: https://archive.apache.org/dist/hadoop/common/{{ hadoop_version }}/{{ hadoop_version }}.tar.gz
+   dest: /home/{{ hadoop_user }}/{{ hadoop_defaultFS }}
    owner: "{{ hadoop_user }}"
    group: "{{ hadoop_group }}"
 
 - name: unarhive hadoop
   unarchive:
-   src: /home/hadoop/ha-cluster/{{hadoop_version}}.tar.gz
-   dest: /home/hadoop/ha-cluster/
+   src: /home/{{ hadoop_user }}/{{ hadoop_defaultFS }}/{{ hadoop_version }}.tar.gz
+   dest: /home/{{ hadoop_user }}/{{ hadoop_defaultFS }}/
    remote_src: yes
    owner: "{{ hadoop_user }}"
 
 - name: generate hdfs-site.xml
   template:
    src: hdfs-site.xml.j2
-   dest: /home/hadoop/ha-cluster/{{hadoop_version}}/etc/hadoop/hdfs-site.xml
+   dest: /home/{{ hadoop_user }}/{{ hadoop_defaultFS }}/{{hadoop_version}}/etc/hadoop/hdfs-site.xml
 
 - name: generate core-site.xml
   template:
     src: core-site.xml.j2
-    dest: /home/hadoop/ha-cluster/{{hadoop_version}}/etc/hadoop/core-site.xml
+    dest: /home/{{ hadoop_user }}/{{ hadoop_defaultFS }}/{{ hadoop_version }}/etc/hadoop/core-site.xml
 
 - name: check if journalnode is running
   become: yes
@@ -105,10 +106,10 @@
   changed_when: false
   register: service_namenode_status  
 
-  #- name: format namenode
-  #become: yes
-  #when: (inventory_hostname in groups['master']) and (service_namenode_status.rc == 1)
-  #shell: runuser -l {{ hadoop_user }} -c 'hdfs namenode -format'
+- name: format namenode
+  become: yes
+  when: (inventory_hostname in groups['master']) and (service_namenode_status.rc == 1) and (format_namenode == 1)
+  shell: runuser -l {{ hadoop_user }} -c 'hdfs namenode -format'
 
 - name: check if namenode is running
   become: yes
@@ -129,10 +130,10 @@
   changed_when: false
   register: service_namenode_status
 
-  #- name: bootstrap secondary nodes
-  #when: (inventory_hostname in groups['standby']) and (service_namenode_status.rc == 1)
-  #shell: runuser -l {{ hadoop_user }} -c 'hdfs namenode -bootstrapstandby'
-  #become: yes
+- name: bootstrap secondary nodes
+  when: (inventory_hostname in groups['standby']) and (service_namenode_status.rc == 1) and (bootstrap_namenode == 1)
+  shell: runuser -l {{ hadoop_user }} -c 'hdfs namenode -bootstrapstandby'
+  become: yes
 
 - name: check if namenode is running
   become: yes
@@ -165,10 +166,10 @@
   changed_when: false
   register: service_zkfc_status
   
-  #- name: start zkfc format on NN1
-  #when: inventory_hostname in groups['master'] and (service_zkfc_status.rc == 1)
-  #shell: runuser -l  {{ hadoop_user }} -c ' hdfs zkfc -formatZK'
-  #become: yes
+- name: start zkfc format on NN1
+  when: inventory_hostname in groups['master'] and (service_zkfc_status.rc == 1) and (format_zkfc == 1)
+  shell: runuser -l  {{ hadoop_user }} -c ' hdfs zkfc -formatZK'
+  become: yes
 
 - name: check if zkfc is running
   become: yes

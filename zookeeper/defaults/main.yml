@@ -3,12 +3,16 @@ zookeeper_group: zookeeper
 
 zookeeper_home: /home/{{ zookeeper_user }}/{{ zookeeper_dir }}/{{ zookeeper_version }}
 
-zookeeper_dir: ha-cluster
+zookeeper_defaultFS: ha-cluster
 zookeeper_version: zookeeper-3.5.6
+
 zookeeper_data_dir: /home/zookeeper/ha-cluster/data
 zookeeper_log_dir: /home/zookeeper/ha-cluster/data/logs
+
 zookeeper_client_port: 2181
 zookeeper_leader_port: 2888
 zookeeper_election_port: 3888
+
 zookeeper_servers: "{{groups['zookeeper']}}"
+
 zookeeper_id: 1

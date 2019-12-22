@@ -1,0 +1,18 @@
+    - name: remove localhost-records  
+      lineinfile: 
+        dest: /etc/cloud/templates/hosts.debian.tmpl 
+        regexp: '^127' 
+        line: "#"
+
+    - name: remove localhost-records
+      lineinfile:
+        dest: /etc/cloud/templates/hosts.debian.tmpl
+        regexp: '^::1'
+        line: "#"
+
+    - name: remove localhost-records
+      lineinfile:
+        dest: /etc/cloud/templates/hosts.debian.tmpl
+        regexp: '^f'
+        line: "#"
+

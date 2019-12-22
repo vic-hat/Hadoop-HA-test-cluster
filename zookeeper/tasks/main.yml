@@ -7,14 +7,14 @@
 
 - name: make dir for zookeeper
   file:
-   path: /home/{{ zookeeper_user }}/{{ zookeeper_dir }}/
+   path: /home/{{ zookeeper_user }}/{{ zookeeper_defaultFS }}/
    state: directory
    owner: "{{ zookeeper_user }}"
    group: "{{ zookeeper_group }}"
 
 - name: make dir for zookeeper data
   file:
-   path: /home/{{ zookeeper_user }}/{{ zookeeper_dir }}/data
+   path: /home/{{ zookeeper_user }}/{{ zookeeper_defaultFS }}/data
    state: directory
    owner: "{{ zookeeper_user }}"
    group: "{{ zookeeper_group }}"
@@ -24,21 +24,21 @@
   blockinfile:
    path: /etc/profile
    block: |
-    export ZOOKEEPER_HOME= {{zookeeper_home }} 
+    export ZOOKEEPER_HOME= {{ zookeeper_home }} 
     export PATH=$PATH:$ZOOKEEPER_HOME/bin
    backup: yes
 
 - name: download zookeeper
   get_url:
-   url: https://archive.apache.org/dist/zookeeper/{{zookeeper_version}}/apache-{{zookeeper_version}}-bin.tar.gz
-   dest: /home/{{ zookeeper_user }}/{{ zookeeper_dir }}/
+   url: https://archive.apache.org/dist/zookeeper/{{zookeeper_version}}/apache-{{ zookeeper_version }}-bin.tar.gz
+   dest: /home/{{ zookeeper_user }}/{{ zookeeper_defaultFS }}/
    owner: "{{ zookeeper_user }}"
    group: "{{ zookeeper_group }}"
 
 - name: unarhive zookeeper
   unarchive:
-   src: /home/zookeeper/ha-cluster/apache-{{zookeeper_version}}-bin.tar.gz
-   dest: /home/zookeeper/ha-cluster/
+   src: /home/{{ zookeeper_user }}/{{ zookeeper_defaultFS }}/apache-{{ zookeeper_version }}-bin.tar.gz
+   dest: /home/{{ zookeeper_user }}/{{ zookeeper_defaultFS }}/
    remote_src: yes
    owner: "{{ zookeeper_user }}"
    group: "{{ zookeeper_group }}"
@@ -46,14 +46,14 @@
 # Necessary, given https://github.com/ansible/ansible/issues/35426
 - name: Fix permissions on the extract directory and sub-directories
   file:
-    path: /home/{{ zookeeper_user }}/{{ zookeeper_dir }}/
+    path: /home/{{ zookeeper_user }}/{{ zookeeper_defaultFS }}/
     owner: "{{ zookeeper_user }}"
     group: "{{ zookeeper_group }}"
     recurse: yes
 
 - name: make dir for zookeeper conf
   file:
-   path: /home/zookeeper/ha-cluster/apache-{{zookeeper_version}}-bin/conf
+   path: /home/{{ zookeeper_user }}/{{ zookeeper_defaultFS }}/apache-{{zookeeper_version}}-bin/conf
    state: directory
    owner: "{{ zookeeper_user }}"
    group: "{{ zookeeper_group }}"
@@ -61,14 +61,14 @@
 - name: generate zoo.cfg
   template:
    src: zoo.cfg.j2
-   dest: /home/zookeeper/ha-cluster/apache-{{zookeeper_version}}-bin/conf/zoo.cfg
+   dest: /home/{{ zookeeper_user }}/{{ zookeeper_defaultFS }}/apache-{{zookeeper_version}}-bin/conf/zoo.cfg
    owner: "{{ zookeeper_user }}"
    group: "{{ zookeeper_group }}"
 
 - name: generate myid
   template:
    src: myid.j2
-   dest: /home/zookeeper/ha-cluster/data/myid
+   dest: /home/{{ zookeeper_user }}/{{ zookeeper_defaultFS }}/data/myid
    owner: "{{ zookeeper_user }}"
    group: "{{ zookeeper_group }}"
 
@@ -79,16 +79,7 @@
   changed_when: false
   register: service_zookeeperquorum_status
 
-  #- name: make dir for zookeeper 
-  #file:
-  # path: /home/zookeeper/ha-cluster/apache-zookeeper-3.5.6-bin/logs
-  # state: directory
-  # owner: "{{ zookeeper_user }}"
-  # group: "{{ zookeeper_group }}"   
-
 - name: start zk-server
   become: yes
   when: service_zookeeperquorum_status.rc == 1
   shell: runuser -l {{ zookeeper_user }} -c '/home/zookeeper/ha-cluster/apache-{{zookeeper_version}}-bin/bin/zkServer.sh start' 
-
-
