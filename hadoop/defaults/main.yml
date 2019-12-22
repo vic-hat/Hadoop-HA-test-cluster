@@ -4,7 +4,7 @@ hadoop_home: /home/{{ hadoop_user }}/{{ hadoop_defaultFS }}/ {{ hadoop_version }
 
 hadoop_user: hadoop
 hadoop_group: hadoop
-zookeeper_user: zookeeper
+zookeeper_user: hadoop
 
 java_home: /usr/lib/jvm/java-8-openjdk-amd64
 
@@ -19,6 +19,6 @@ hadoop_journalnodes: "{{ groups['journalnode'] }}"
 
 hdfs_replication: 1
 
-format_namenode: 0
+format_namenode: 0 
 bootstrap_namenode: 0
-format_zkfc: 0
+format_zkfc: 0 

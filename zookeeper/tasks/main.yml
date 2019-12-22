@@ -82,4 +82,4 @@
 - name: start zk-server
   become: yes
   when: service_zookeeperquorum_status.rc == 1
-  shell: runuser -l {{ zookeeper_user }} -c '/home/zookeeper/ha-cluster/apache-{{zookeeper_version}}-bin/bin/zkServer.sh start' 
+  shell: runuser -l {{ zookeeper_user }} -c '/home/{{ zookeeper_user }}/{{ zookeeper_defaultFS }}/apache-{{zookeeper_version}}-bin/bin/zkServer.sh start' 

@@ -1,18 +1,70 @@
     - name: remove localhost-records  
-      lineinfile: 
+      become: yes
+      replace: 
         dest: /etc/cloud/templates/hosts.debian.tmpl 
         regexp: '^127' 
-        line: "#"
+        replace: "#127"
 
     - name: remove localhost-records
-      lineinfile:
+      become: yes
+      replace:
         dest: /etc/cloud/templates/hosts.debian.tmpl
         regexp: '^::1'
-        line: "#"
+        replace: "#::1"
 
     - name: remove localhost-records
-      lineinfile:
+      become: yes
+      replace:
         dest: /etc/cloud/templates/hosts.debian.tmpl
         regexp: '^f'
-        line: "#"
+        replace: "#f"
+
+    - name: remove localhost-records
+      become: yes
+      replace:
+        dest: /etc/hosts
+        regexp: '^127'
+        replace: "#127"
+
+    - name: remove localhost-records
+      become: yes
+      replace:
+        dest: /etc/hosts
+        regexp: '^::1'
+        replace: "#::1"
+
+    - name: remove localhost-records
+      become: yes
+      replace:
+        dest: /etc/hosts
+        regexp: '^f'
+        replace: "#f"
+
+    - name: create file for hosts
+      delegate_to: localhost
+      file:
+        path: /tmp/hosts
+        state: touch
+       
+    - name: get all hosts ip 
+      delegate_to: localhost
+      lineinfile:
+       dest: /tmp/hosts
+       line: "{{ ansible_eth0.ipv4.address }} {{ inventory_hostname }}"
+       state: present
+
+    - name: add hosts ip in hosts
+      become: yes
+      blockinfile:
+       block: "{{ lookup('file', '/tmp/hosts') }}"
+       dest: /etc/hosts
+       backup: yes       
+
+    - name: add hosts ip in hosts
+      become: yes
+      blockinfile:
+       block: "{{ lookup('file', '/tmp/hosts') }}"
+       dest: /etc/cloud/templates/hosts.debian.tmpl
+       backup: yes
+
 

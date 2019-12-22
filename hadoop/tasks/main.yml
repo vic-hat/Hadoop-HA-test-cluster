@@ -178,7 +178,7 @@
   changed_when: false
   register: service_zkfc_status
   
-- name: start zkfc on all nodes
-  when: service_zkfc_status.rc == 1
+- name: start zkfc on namenodes 
+  when: (service_zkfc_status.rc == 1) and (inventory_hostname in groups['namenode'])
   shell: runuser -l  {{ hadoop_user }} -c 'hdfs --daemon start zkfc'
   become: yes
