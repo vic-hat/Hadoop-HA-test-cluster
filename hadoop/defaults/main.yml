@@ -17,8 +17,8 @@ zookeeper_hosts: "{{ groups['zookeeper'] }}"
 hadoop_namenodes: "{{ groups['namenode'] }}"
 hadoop_journalnodes: "{{ groups['journalnode'] }}"
 
-hdfs_replication: 1
+hdfs_replication: 3
 
 format_namenode: 0
 bootstrap_namenode: 0
-format_zkfc: 1 
+format_zkfc: 0 
