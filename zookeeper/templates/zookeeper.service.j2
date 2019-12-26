@@ -1,0 +1,13 @@
+[Unit]
+Description=Zookeeper service
+[Service]
+User={{zookeeper_user}}
+Group={{zookeeper_user}}
+Type=oneshot
+RemainAfterExit=true
+Environment="JAVA_HOME={{java_home}}"
+ExecStart={{zookeeper_home}}-bin/bin/zkServer.sh start
+ExecStop={{zookeeper_home}}-bin/bin/zkServer.sh stop
+[Install]
+WantedBy=multi-user.target
+

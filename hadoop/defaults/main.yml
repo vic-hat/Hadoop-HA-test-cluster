@@ -1,6 +1,6 @@
 primary_node: namenode1
 
-hadoop_home: /home/{{ hadoop_user }}/{{ hadoop_defaultFS }}/ {{ hadoop_version }}
+hadoop_home: /home/{{ hadoop_user }}/{{ hadoop_defaultFS }}/{{ hadoop_version }}
 
 hadoop_user: hadoop
 hadoop_group: hadoop

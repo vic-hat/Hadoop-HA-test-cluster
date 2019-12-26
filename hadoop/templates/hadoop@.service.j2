@@ -1,0 +1,13 @@
+[Unit]
+Description=Hdfs service
+[Service]
+User={{hadoop_user}}
+Group={{hadoop_group}}
+Type=oneshot
+RemainAfterExit=true
+Environment="JAVA_HOME={{java_home}}"
+ExecStart={{hadoop_home}}/bin/hdfs --daemon start %i
+ExecStop={{hadoop_home}}/bin/hdfs --daemon stop %i
+[Install]
+WantedBy=multi-user.target
+

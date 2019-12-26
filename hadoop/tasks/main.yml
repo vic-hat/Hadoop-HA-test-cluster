@@ -39,43 +39,34 @@
    owner: "{{ hadoop_user }}"
    group: "{{ hadoop_group }}"
 
-- name: make dir for hadoop data namenode
+- name: make dir for hadoop namenode, datanode and journalnode data
   file:
-   path: /home/{{ hadoop_user }}/{{ hadoop_defaultFS }}/data/namenode
+   path: /home/{{ hadoop_user }}/{{ hadoop_defaultFS }}/data/{{ item }}
    state: directory
    owner: "{{ hadoop_user }}"
    group: "{{ hadoop_group }}"  
    mode: '755'
+  with_items: 
+   - datanode
+   - namenode
+   - jn   
 
-- name: make dir for hadoop data datanode
-  file:
-   path: /home/{{ hadoop_user }}/{{ hadoop_defaultFS }}/data/datanode
-   state: directory
-   owner: "{{ hadoop_user }}"
-   group: "{{ hadoop_group }}"
-   mode: '755'   
+     #- name: download hadoop
+     #get_url:
+     #url: https://archive.apache.org/dist/hadoop/common/{{ hadoop_version }}/{{ hadoop_version }}.tar.gz
+     #dest: /home/{{ hadoop_user }}/{{ hadoop_defaultFS }}
+     #owner: "{{ hadoop_user }}"
+     #group: "{{ hadoop_group }}"
 
-- name: make dir for hadoop data journalnode
-  file:
-   path: /home/{{ hadoop_user }}/{{ hadoop_defaultFS }}/data/jn
-   state: directory
-   owner: "{{ hadoop_user }}"
-   group: "{{ hadoop_group }}"
-   mode: '755'
-
-- name: download hadoop
-  get_url:
-   url: https://archive.apache.org/dist/hadoop/common/{{ hadoop_version }}/{{ hadoop_version }}.tar.gz
-   dest: /home/{{ hadoop_user }}/{{ hadoop_defaultFS }}
-   owner: "{{ hadoop_user }}"
-   group: "{{ hadoop_group }}"
-
-- name: unarhive hadoop
-  unarchive:
-   src: /home/{{ hadoop_user }}/{{ hadoop_defaultFS }}/{{ hadoop_version }}.tar.gz
-   dest: /home/{{ hadoop_user }}/{{ hadoop_defaultFS }}/
-   remote_src: yes
-   owner: "{{ hadoop_user }}"
+     #- name: unarhive hadoop
+     #unarchive:
+     #src: /home/{{ hadoop_user }}/{{ hadoop_defaultFS }}/{{ hadoop_version }}.tar.gz
+     #dest: /home/{{ hadoop_user }}/{{ hadoop_defaultFS }}/
+     #remote_src: yes
+     #owner: "{{ hadoop_user }}"
+     #exclude: 
+     #- hdfs-site.xml
+     #- core-site.xml
 
 - name: generate hdfs-site.xml
   template:
@@ -87,6 +78,36 @@
     src: core-site.xml.j2
     dest: /home/{{ hadoop_user }}/{{ hadoop_defaultFS }}/{{ hadoop_version }}/etc/hadoop/core-site.xml
 
+- name: generate hadoop service file for systemd
+  template:
+   src: hadoop@.service.j2
+   dest: /etc/systemd/system/hadoop@.service
+  become: yes
+
+- name: enable hadoop@zkfc.service
+  become: yes
+  become_method: sudo
+  when: inventory_hostname in groups['namenode']
+  shell: systemctl enable hadoop@zkfc.service
+
+- name: enable hadoop@namenode.service
+  become: yes
+  become_method: sudo
+  when: inventory_hostname in groups['namenode']
+  shell: systemctl enable hadoop@namenode.service
+
+- name: enable hadoop@datanode.service
+  become: yes
+  become_method: sudo
+  when: inventory_hostname in groups['datanode']
+  shell: systemctl enable hadoop@datanode.service
+
+- name: enable hadoop@journalnode.service
+  become: yes
+  become_method: sudo
+  when: inventory_hostname in groups['namenode']
+  shell: systemctl enable hadoop@journalnode.service
+  
 - name: check if journalnode is running
   become: yes
   shell: runuser -l {{ hadoop_user }} -c 'jps | grep " JournalNode" | grep -v grep'
@@ -155,7 +176,7 @@
   register: service_datanode_status
 
 - name: start datanodes
-  when:  (inventory_hostname in groups['datanodes']) and (service_namenode_status.rc == 1)
+  when:  (inventory_hostname in groups['datanode']) and (service_namenode_status.rc == 1)
   shell: runuser -l  {{ hadoop_user }} -c 'hdfs --daemon start datanode'
   become: yes
 
@@ -182,3 +203,10 @@
   when: (service_zkfc_status.rc == 1) and (inventory_hostname in groups['namenode'])
   shell: runuser -l  {{ hadoop_user }} -c 'hdfs --daemon start zkfc'
   become: yes
+
+
+  
+
+  
+
+  
