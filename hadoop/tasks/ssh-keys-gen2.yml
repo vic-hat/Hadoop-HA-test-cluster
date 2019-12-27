@@ -1,0 +1,40 @@
+    - name: create dir for authorized_keys
+      delegate_to: localhost
+      file:
+        path: /tmp/pubkeys/
+        state: directory
+        mode: "777"
+    
+    - name: get all pub-keys
+      become: yes
+      fetch: 
+       src: /home/{{hadoop_user}}/.ssh/id_rsa.pub
+       dest: /tmp/pubkeys/pub-{{ inventory_hostname }}
+       flat: yes
+
+    - name: assemble authorized keys
+      delegate_to: localhost 
+      assemble:
+       src: /tmp/pubkeys
+       dest: /tmp/authorized_keys
+  
+    - name: copy_keys
+      copy:
+       src: /tmp/authorized_keys
+       dest: /home/{{ hadoop_user }}/.ssh/authorized_keys
+       owner: "{{ hadoop_user }}"
+       group: "{{ hadoop_group }}"  
+      become: yes
+
+    - name: get port, default 22
+      delegate_to: localhost
+      set_fact:
+        ansible_ssh_port: "{{ hostvars[inventory_hostname]['ansible_ssh_port'] | default('22') }}"
+
+    - name: Ensure ssh host key known
+      delegate_to: localhost
+      lineinfile:
+        dest: ~/.ssh/known_hosts
+        create: yes
+        state: present
+        line: "{{ lookup('pipe', 'ssh-keyscan -trsa -p' + ansible_ssh_port + ' ' + inventory_hostname) }}"
