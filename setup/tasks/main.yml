@@ -1,0 +1,6 @@
+- name: Bootstrap a host without python2 installed
+  become: yes
+  raw: apt -y update && apt install -y python
+
+- name: Collect only facts returned by facter
+  setup:

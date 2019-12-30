@@ -1,9 +1,10 @@
 zookeeper_user: hadoop
 zookeeper_group: hadoop
 
-zookeeper_home: /home/{{ zookeeper_user }}/{{ zookeeper_defaultFS }}/{{ zookeeper_version }}
+zookeeper_home: /home/{{ zookeeper_user }}/{{ zookeeper_defaultFS }}/{{ zookeeper_version_full }}
 
 zookeeper_defaultFS: ha-cluster
+zookeeper_version_full: apache-zookeeper-3.5.6
 zookeeper_version: zookeeper-3.5.6
 
 zookeeper_data_dir: /home/{{ zookeeper_user }}/{{ zookeeper_defaultFS }}/data

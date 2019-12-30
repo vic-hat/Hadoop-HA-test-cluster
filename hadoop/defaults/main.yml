@@ -19,6 +19,6 @@ hadoop_journalnodes: "{{ groups['journalnode'] }}"
 
 hdfs_replication: 3
 
-format_namenode: 0
-bootstrap_namenode: 0
-format_zkfc: 0 
+format_namenode: 1
+bootstrap_namenode: 1
+format_zkfc: 1

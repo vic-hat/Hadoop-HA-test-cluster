@@ -2,10 +2,12 @@
   become: yes
   become_user: root
   become_method: sudo
+  gather_facts: no
   hosts: [hadoop]
 
-  roles:          
-  #- java
-         #  - zookeeper 
+  roles:
+       - setup          
+       - java
+       - zookeeper 
        - hadoop 
       

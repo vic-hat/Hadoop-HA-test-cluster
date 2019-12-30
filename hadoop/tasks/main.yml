@@ -14,13 +14,16 @@
     export JAVA_HOME={{ java_home }}
     export ZOOKEEPER_HOME=/home/{{ zookeeper_user }}/{{ hadoop_defaultFS }}/{{ zookeeper_version }}
     export PATH=$PATH:$JAVA_HOME/bin:$HADOOP_HOME/bin:$HADOOP_HOME/sbin:$ZOOKEEPER_HOME/bin 
-    _JAVA_OPTIONS=-Djava.net.preferIPv4Stack=true
+    export  _JAVA_OPTIONS=-Djava.net.preferIPv4Stack=true
 
 - name: create hadoop user
   user:
    name: "{{ hadoop_user }}"
    shell: /bin/bash
    home: /home/{{ hadoop_user }}
+   generate_ssh_key: yes
+   ssh_key_bits: 2048
+   ssh_key_file: .ssh/id_rsa
 
 - name: make dir for hadoop
   file:
@@ -29,7 +32,7 @@
    owner: "{{ hadoop_user }}"
    group: "{{ hadoop_group }}"
 
-- import_tasks: ssh-keys-gen.yml 
+- import_tasks: ssh-keys-gen2.yml 
 - import_tasks: hosts-managment.yml
 
 - name: make dir for hadoop data
@@ -51,22 +54,22 @@
    - namenode
    - jn   
 
-     #- name: download hadoop
-     #get_url:
-     #url: https://archive.apache.org/dist/hadoop/common/{{ hadoop_version }}/{{ hadoop_version }}.tar.gz
-     #dest: /home/{{ hadoop_user }}/{{ hadoop_defaultFS }}
-     #owner: "{{ hadoop_user }}"
-     #group: "{{ hadoop_group }}"
+- name: download hadoop
+  get_url:
+   url: https://archive.apache.org/dist/hadoop/common/{{ hadoop_version }}/{{ hadoop_version }}.tar.gz
+   dest: /home/{{ hadoop_user }}/{{ hadoop_defaultFS }}
+   owner: "{{ hadoop_user }}"
+   group: "{{ hadoop_group }}"
 
-     #- name: unarhive hadoop
-     #unarchive:
-     #src: /home/{{ hadoop_user }}/{{ hadoop_defaultFS }}/{{ hadoop_version }}.tar.gz
-     #dest: /home/{{ hadoop_user }}/{{ hadoop_defaultFS }}/
-     #remote_src: yes
-     #owner: "{{ hadoop_user }}"
-     #exclude: 
-     #- hdfs-site.xml
-     #- core-site.xml
+- name: unarhive hadoop
+  unarchive:
+   src: /home/{{ hadoop_user }}/{{ hadoop_defaultFS }}/{{ hadoop_version }}.tar.gz
+   dest: /home/{{ hadoop_user }}/{{ hadoop_defaultFS }}/
+   remote_src: yes
+   owner: "{{ hadoop_user }}"
+   #exclude: 
+   #- hdfs-site.xml
+   #- core-site.xml
 
 - name: generate hdfs-site.xml
   template:
