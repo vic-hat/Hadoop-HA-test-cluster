@@ -42,43 +42,43 @@
 
 #db-[99:101]-node.example.com
 [hadoop]
-namenode1 
-namenode2
+namenode1.ru-central1.internal 
+namenode2.ru-central1.internal
 #namenode3
-datanode1
+datanode1.ru-central1.internal
 #datanode2
 #datanode3  
 
 [namenode]
-namenode1 
-namenode2
+namenode1.ru-central1.internal 
+namenode2.ru-central1.internal
 #namenode3 
 
 [master]
-namenode1
+namenode1.ru-central1.internal
 
 [standby]
-namenode2
+namenode2.ru-central1.internal
 #namenode3
 
 [datanode]
-namenode1
-namenode2
-datanode1 
+namenode1.ru-central1.internal
+namenode2.ru-central1.internal
+datanode1.ru-central1.internal
 #datanode2 
 #datanode3  
 
 [journalnode]
-namenode1 
-namenode2
+namenode1.ru-central1.internal
+namenode2.ru-central1.internal
 #namenode3 
-datanode1
+datanode1.ru-central1.internal
 
 [zookeeper]
-namenode1 zookeeper_id=1 
-namenode2 zookeeper_id=2 
+namenode1.ru-central1.internal zookeeper_id=1 
+namenode2.ru-central1.internal zookeeper_id=2 
 #namenode3 zookeeper_id=3
-datanode1 zookeeper_id=3
+datanode1.ru-central1.internal zookeeper_id=3
 #datanode2 zookeeper_id=5
 #datanode3 zookeeper_id=6
 

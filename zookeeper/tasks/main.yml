@@ -72,17 +72,17 @@
    owner: "{{ zookeeper_user }}"
    group: "{{ zookeeper_group }}"
 
-- name: check if zookeeper server is running
-  become: yes
-  shell: runuser -l {{ zookeeper_user }} -c 'jps | grep "QuorumPeerMain" | grep -v grep'
-  ignore_errors: yes
-  changed_when: false
-  register: service_zookeeperquorum_status
+   #- name: check if zookeeper server is running
+   #become: yes
+   #shell: runuser -l {{ zookeeper_user }} -c 'jps | grep "QuorumPeerMain" | grep -v grep'
+   #ignore_errors: yes
+   #changed_when: false
+   #register: service_zookeeperquorum_status
 
-- name: start zk-server
-  become: yes
-  when: service_zookeeperquorum_status.rc == 1
-  shell: runuser -l {{ zookeeper_user }} -c '{{zookeeper_home}}-bin/bin/zkServer.sh start' 
+   #- name: start zk-server
+   #become: yes
+   #when: service_zookeeperquorum_status.rc == 1
+   #shell: runuser -l {{ zookeeper_user }} -c '{{zookeeper_home}}-bin/bin/zkServer.sh start' 
 
 - name: generate zookeeper service file for systemd
   template:

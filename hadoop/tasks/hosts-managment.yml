@@ -40,6 +40,13 @@
         regexp: '^f'
         replace: "#f"
 
+    
+    - name: remove file for hosts if exist
+      delegate_to: localhost
+      file:
+        path: /tmp/hosts
+        state: absent
+    
     - name: create file for hosts
       delegate_to: localhost
       file:

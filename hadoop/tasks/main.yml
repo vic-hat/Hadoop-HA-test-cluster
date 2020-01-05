@@ -123,6 +123,18 @@
   when: (inventory_hostname in groups['journalnode']) and (service_journalnode_status.rc == 1)
   shell: runuser -l {{ hadoop_user }} -c 'hdfs --daemon start journalnode' 
 
+- name: check if zookeeper server is running
+  become: yes
+  shell: runuser -l {{ zookeeper_user }} -c 'jps | grep "QuorumPeerMain" | grep -v grep'
+  ignore_errors: yes
+  changed_when: false
+  register: service_zookeeperquorum_status
+
+- name: start zk-server
+  become: yes
+  when: service_zookeeperquorum_status.rc == 1
+  shell: runuser -l {{ zookeeper_user }} -c '{{zookeeper_home}}-bin/bin/zkServer.sh start'
+  
 - name: check if namenode is running
   become: yes
   shell: runuser -l {{ hadoop_user }} -c 'jps | grep "NameNode" | grep -v grep'
@@ -179,10 +191,10 @@
   register: service_datanode_status
 
 - name: start datanodes
-  when:  (inventory_hostname in groups['datanode']) and (service_namenode_status.rc == 1)
+  when:  (inventory_hostname in groups['datanode']) and (service_datanode_status.rc == 1)
   shell: runuser -l  {{ hadoop_user }} -c 'hdfs --daemon start datanode'
   become: yes
-
+ 
 - name: check if zkfc is running
   become: yes
   shell: runuser -l {{ hadoop_user }} -c 'jps | grep "ZKFailoverController" | grep -v grep'
