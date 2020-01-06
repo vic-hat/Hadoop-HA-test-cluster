@@ -1,0 +1,115 @@
+
+- name: check if journalnode is running
+  become: yes
+  shell: runuser -l {{ hadoop_user }} -c 'jps | grep " JournalNode" | grep -v grep'
+  ignore_errors: yes
+  changed_when: false
+  register: service_journalnode_status
+
+- name: start journalnode
+  become: yes
+  when: (inventory_hostname in groups['journalnode']) and (service_journalnode_status.rc == 1)
+  shell: runuser -l {{ hadoop_user }} -c 'hdfs --daemon start journalnode' 
+
+- name: check if zookeeper server is running
+  become: yes
+  shell: runuser -l {{ zookeeper_user }} -c 'jps | grep "QuorumPeerMain" | grep -v grep'
+  ignore_errors: yes
+  changed_when: false
+  register: service_zookeeperquorum_status
+
+- name: start zk-server
+  become: yes
+  when: service_zookeeperquorum_status.rc == 1
+  shell: runuser -l {{ zookeeper_user }} -c '{{zookeeper_home}}-bin/bin/zkServer.sh start'
+  
+- name: check if namenode is running
+  become: yes
+  shell: runuser -l {{ hadoop_user }} -c 'jps | grep "NameNode" | grep -v grep'
+  ignore_errors: yes
+  changed_when: false
+  register: service_namenode_status  
+
+- name: format namenode
+  become: yes
+  when: (inventory_hostname in groups['master']) and (service_namenode_status.rc == 1) and (format_namenode == 1)
+  shell: runuser -l {{ hadoop_user }} -c 'hdfs namenode -format'
+
+- name: check if namenode is running
+  become: yes
+  shell: runuser -l {{ hadoop_user }} -c 'jps | grep "NameNode" | grep -v grep'
+  ignore_errors: yes
+  changed_when: false
+  register: service_namenode_status
+
+- name: start primary namenode
+  when: (inventory_hostname in groups['master']) and (service_namenode_status.rc == 1)
+  shell: runuser -l  {{ hadoop_user }} -c 'hdfs --daemon start namenode'
+  become: yes
+
+- name: check if namenode is running
+  become: yes
+  shell: runuser -l {{ hadoop_user }} -c 'jps | grep "NameNode" | grep -v grep'
+  ignore_errors: yes
+  changed_when: false
+  register: service_namenode_status
+
+- name: bootstrap secondary nodes
+  when: (inventory_hostname in groups['standby']) and (service_namenode_status.rc == 1) and (bootstrap_namenode == 1)
+  shell: runuser -l {{ hadoop_user }} -c 'hdfs namenode -bootstrapstandby'
+  become: yes
+
+- name: check if namenode is running
+  become: yes
+  shell: runuser -l {{ hadoop_user }} -c 'jps | grep "NameNode" | grep -v grep'
+  ignore_errors: yes
+  changed_when: false
+  register: service_namenode_status  
+
+- name: start namenodes
+  when: (inventory_hostname in groups['namenode']) and (service_namenode_status.rc == 1)
+  shell: runuser -l  {{ hadoop_user }} -c 'hdfs --daemon start namenode'
+  become: yes
+  
+- name: check if datanode is running
+  become: yes
+  shell: runuser -l {{ hadoop_user }} -c 'jps | grep "DataNode" | grep -v grep'
+  ignore_errors: yes
+  changed_when: false
+  register: service_datanode_status
+
+- name: start datanodes
+  when:  (inventory_hostname in groups['datanode']) and (service_datanode_status.rc == 1)
+  shell: runuser -l  {{ hadoop_user }} -c 'hdfs --daemon start datanode'
+  become: yes
+ 
+- name: check if zkfc is running
+  become: yes
+  shell: runuser -l {{ hadoop_user }} -c 'jps | grep "ZKFailoverController" | grep -v grep'
+  ignore_errors: yes
+  changed_when: false
+  register: service_zkfc_status
+  
+- name: format zkfc  
+  when: inventory_hostname in groups['master'] and (service_zkfc_status.rc == 1) and (format_zkfc == 1)
+  shell: runuser -l  {{ hadoop_user }} -c ' hdfs zkfc -formatZK'
+  become: yes
+
+- name: check if zkfc is running
+  become: yes
+  shell: runuser -l {{ hadoop_user }} -c 'jps | grep "ZKFailoverController" | grep -v grep'
+  ignore_errors: yes
+  changed_when: false
+  register: service_zkfc_status
+  
+- name: start zkfc on namenodes 
+  when: (service_zkfc_status.rc == 1) and (inventory_hostname in groups['namenode'])
+  shell: runuser -l  {{ hadoop_user }} -c 'hdfs --daemon start zkfc'
+  become: yes
+
+
+  
+
+  
+
+  
