@@ -10,4 +10,4 @@
        - java
        - zookeeper 
        - hadoop 
-      
+       - ha-start 
