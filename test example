@@ -1,0 +1,7 @@
+Проверка какая неймнода праймари, какая стендбай:
+hdfs haadmin -getServiceState <имя узла>
+
+Проверка MapReduce:
+bin/hdfs dfs -copyFromLocal /home/hadoop/test/* /in
+bin/hadoop jar share/hadoop/mapreduce/hadoop-mapreduce-examples-3.2.1.jar wordcount /in /out
+bin/hdfs dfs -copyToLocal /out /home/hadoop/
